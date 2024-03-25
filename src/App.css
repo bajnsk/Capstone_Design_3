@@ -5,39 +5,54 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #f2f2f2;
+  background-color: #eaeaea; /* Updated background color */
+  font-family: 'Helvetica', sans-serif; /* Updated font */
 }
 
 .drag-drop-area {
-  width: 70%;
-  max-width: 600px;
-  border: 2px dashed #cccccc;
-  border-radius: 10px;
+  width: 60%; /* Adjusted width */
+  max-width: 500px; /* Adjusted max width */
+  border: 2px dashed #9e9e9e; /* Updated border color */
+  border-radius: 20px; /* Rounded corners */
   padding: 40px;
   text-align: center;
   background-color: #ffffff;
   cursor: pointer;
   margin-bottom: 20px;
+  box-shadow: 0px 10px 20px rgba(0,0,0,0.1); /* Added shadow */
+  transition: transform 0.3s, box-shadow 0.3s; /* Added transition */
 }
 
 .drag-drop-area:hover {
-  border-color: #aaaaaa;
+  border-color: #7a7a7a;
+  transform: translateY(-3px); /* Lift effect */
+  box-shadow: 0px 15px 25px rgba(0,0,0,0.15); /* Enhanced shadow */
 }
 
 button {
   padding: 10px 20px;
   margin: 5px;
-  border: 1px solid #cccccc;
+  border: none; /* Removed border */
   background-color: #ffffff;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  box-shadow: 0px 3px 6px rgba(0,0,0,0.1); /* Added shadow */
 }
 
 button:hover {
-  background-color: #e8e8e8;
+  background-color: #f0f0f0; /* Lighter background on hover */
+  box-shadow: 0px 5px 10px rgba(0,0,0,0.15); /* Enhanced shadow */
 }
 
 .actions {
   display: flex;
   justify-content: center;
+}
+
+/* Added new container for buttons */
+.button-container {
+  display: flex;
+  justify-content: space-around;
+  width: 50%; /* Set a width for the container */
+  max-width: 300px; /* Max width for better responsiveness */
 }
