@@ -8,14 +8,14 @@ import easyocr
 
 
 app = Flask(__name__)
+# CORS 설정
 CORS(app, resources={r"/upload": {"origins": "http://localhost:3000"}})
-# 파일을 저장할 경로 설정
+# 확장자 정의
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
-# app.py 파일의 상위 디렉토리 경로를 얻습니다.
+# 이미지 업로드 경로 설정
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# 상위 디렉토리에 위치한 'Upload' 폴더를 가리키도록 합니다.
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'Upload')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -25,11 +25,11 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# 이미지에서 텍스트를 추출하는 함수
+# 이미지에서 텍스트를 추출
 def ocr_core(filename):
     reader = easyocr.Reader(['ko', 'en'])
     results = reader.readtext(filename)
-    # 각 결과를 직렬화 가능한 타입으로 변환합니다.
+    # 타입 변경
     ocr_results = [
         {
             'text': result[1],
@@ -42,7 +42,6 @@ def ocr_core(filename):
 
 @app.route('/upload', methods=['POST'])
 def file_upload():
-    # request에서 'file' 키로 파일을 받음
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
     file = request.files['file']
@@ -51,7 +50,6 @@ def file_upload():
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        # 파일 저장
         file.save(filepath)
 
         # OCR 적용
