@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 import os
 from flask import jsonify
 import easyocr
+from translater import Model
 
 
 app = Flask(__name__)
@@ -19,6 +20,17 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'Upload')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# import translating model (NLLB-200)
+model = Model()
+
+##############################
+# Usage
+#
+# korean_text = model.gen(
+#     '[ENGLISH TEXT]'
+# )
+#
+##############################
 
 # 허용할 파일 형식 확인
 def allowed_file(filename):
