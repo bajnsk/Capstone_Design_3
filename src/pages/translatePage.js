@@ -1,5 +1,6 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
+import "./translatePage.css";
 
 const TranslatePage = () => {
   const location = useLocation();
@@ -7,12 +8,24 @@ const TranslatePage = () => {
 
   return (
     <div className="translate-page-container">
-      <div className="image-ocr-container">
-        <div className="image-container">
-          {image && <img src={image} alt="Uploaded" />}
+      <div className="content-container">
+        <div className="image-section">
+          <h2>원본 이미지</h2>
+          <div className="image-display">
+            <img src={image} alt="Uploaded" />
+          </div>
         </div>
-        <div className="ocr-result-container">
-          <p>{ocrText}</p>
+        <div className="text-section">
+          <div className="ocr-text">
+            <h2>원본 텍스트</h2>
+            <p>{ocrText}</p>
+          </div>
+          <div className="translated-text">
+            <h2>번역 텍스트</h2>
+            <p>
+              {ocrText} {/* 추출된 OCR 텍스트를 임시로 사용 */}
+            </p>
+          </div>
         </div>
       </div>
     </div>
