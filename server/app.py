@@ -6,6 +6,7 @@ import os
 from flask import jsonify
 import easyocr
 from translater import Model
+from image_proc import ImageProcessor
 
 
 app = Flask(__name__)
@@ -22,16 +23,7 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # import translating model (NLLB-200)
 model = Model()
-
-##############################
-# Usage
-#
-# korean_text = model.gen(
-#     '[ENGLISH TEXT]'
-# )
-#
-##############################
-
+image_processor = ImageProcessor()
 
 # 허용할 파일 형식 확인
 def allowed_file(filename):
@@ -77,6 +69,19 @@ def file_upload():
         )
     else:
         return jsonify({"error": "Invalid file type"}), 400
+
+
+@app.route("/image_translate", methods=['GET', 'POST'])
+def image_translate():
+    # img_json = request.get_json()
+    image_path = '/Users/osaechan/Desktop/test_img.png'
+    ocr_text = image_processor.run_ocr(image_path)
+    ocr_text = image_processor.combine_text(ocr_text)
+    ocr_text = image_processor.sentence_split(ocr_text)
+    korean_text = [model.gen(text) for text in ocr_text]
+
+    # return jsonify({'text': ocr_text})
+    return korean_text
 
 
 if __name__ == "__main__":

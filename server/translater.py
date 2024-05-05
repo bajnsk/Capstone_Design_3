@@ -13,10 +13,10 @@ class Model:
         self.num_beams = num_beams
 
     def gen(self, inputs):
-        inputs = self.tokenizer('[YOUR_INPUT]', return_tensors="pt")
+        inputs = self.tokenizer(inputs, return_tensors="pt")
         output = self.model.generate(
             **inputs,
             # num_beams=self.num_beams
         )
-        output = (self.tokenizer.decode(output[0]))
+        output = (self.tokenizer.decode(output[0][2:-1]))
         return output

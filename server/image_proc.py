@@ -27,8 +27,7 @@ class ImageProcessor:
         result = self.reader.readtext(image)
         return result
 
-    @staticmethod
-    def combine_text(read_text):
+    def combine_text(self, read_text):
         """
         detected text is row-by-row which is not a complete sentence.
         it may reduce translating quality.
@@ -42,7 +41,7 @@ class ImageProcessor:
 
         for element in read_text:
             coordinate, text, prob = element
-            total_text += text
+            total_text += (text+' ')
 
         return total_text
 
