@@ -24,7 +24,7 @@ class ImageProcessor:
             ...
         ]
         """
-        result = self.reader.readtext(image)
+        result = self.reader.readtext(image, detail=0)
         return result
 
     def combine_text(self, read_text):
