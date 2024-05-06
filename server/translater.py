@@ -29,3 +29,4 @@ class Model:
         )
         output = (self.tokenizer.decode(output[0][2:-1]))
         return output
+
