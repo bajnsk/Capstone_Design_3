@@ -4,7 +4,7 @@ import "./translatePage.css";
 
 const TranslatePage = () => {
   const location = useLocation();
-  const { image, ocrText } = location.state; // 이전 페이지에서 전달된 state 사용
+  const { image, ocrText, translatedText } = location.state; // 이전 페이지에서 전달된 state 사용
 
   return (
     <div className="translate-page-container">
@@ -22,9 +22,7 @@ const TranslatePage = () => {
           </div>
           <div className="translated-text">
             <h2>번역 텍스트</h2>
-            <p>
-              {ocrText} {/* 추출된 OCR 텍스트를 임시로 사용 */}
-            </p>
+            <p>{translatedText}</p>
           </div>
         </div>
       </div>

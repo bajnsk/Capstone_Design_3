@@ -23,29 +23,49 @@ const TranslatorSite = () => {
     formData.append("file", file);
 
     try {
-      const response = await fetch("http://localhost:5000/upload", {
-        method: "POST",
-        body: formData,
+      // 이미지 업로드
+      let uploadResponse = await fetch("http://localhost:5000/upload", {
+          method: "POST",
+          body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+      if (!uploadResponse.ok) {
+          throw new Error("Upload failed");
       }
 
-      const data = await response.json();
-      console.log("File uploaded successfully:", data);
+      let uploadData = await uploadResponse.json();
+      if (uploadData.error) {
+          throw new Error(uploadData.error);
+      }
+
+      // OCR 결과를 이용한 번역 요청
+      let translateResponse = await fetch("http://localhost:5000/image_translate", {
+          method: "POST",
+          body: formData,
+      });
+
+      if (!translateResponse.ok) {
+          throw new Error("Translation request failed");
+      }
+
+      const translateData = await translateResponse.json();
+      if (translateData.error) {
+          throw new Error(translateData.error);
+      }
 
       // 파일 업로드 후 TranslatePage로 이동
       navigate("/translate", {
-        state: {
-          image: URL.createObjectURL(file),
-          ocrText: data.ocr_result.map((result) => result.text).join("\n"),
-        },
+          state: {
+              image: URL.createObjectURL(file),
+              ocrText: uploadData.ocr_result.map((result) => result.text).join("\n"),
+              translatedText: translateData.translated_text.join(" "),
+          },
       });
     } catch (error) {
-      console.error("Error during file upload:", error);
+      console.error("Error during file upload or translation:", error);
+      alert(error.message);  // 사용자에게 오류 메시지를 표시
     }
-  };
+};
 
   return (
     <div className="translator-container">
