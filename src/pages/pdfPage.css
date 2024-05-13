@@ -1,0 +1,76 @@
+.pdf-page-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    height: 100vh;
+    padding: 40px;
+    background-color: #eaeaea;
+    font-family: "Helvetica", sans-serif;
+  }
+  
+  .content-container {
+    display: flex;
+    width: 100%;
+    max-width: 1200px; /* 최대 너비 설정 */
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  
+  .pdf-section {
+    width: 50%;
+    padding: 20px;
+    border-right: 2px solid #f0f0f0;
+  }
+  
+  .pdf-display img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px; /* 이미지 모서리 둥글게 */
+  }
+  
+  .text-section {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .text-section > div {
+    padding: 20px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .text-section > div:last-child {
+    border-bottom: none;
+  }
+  
+  .text-section h2 {
+    margin-bottom: 10px;
+  }
+  
+  .text-section p {
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 10px; /* 텍스트 영역 모서리 둥글게 */
+    overflow-y: auto; /* 텍스트가 많을 경우 스크롤 */
+  }
+  
+  /* 반응형 레이아웃 조정 */
+  @media (max-width: 768px) {
+    .content-container {
+      flex-direction: column;
+    }
+  
+    .image-section,
+    .text-section {
+      width: 100%;
+      padding: 10px;
+    }
+  
+    .image-section {
+      border-right: none;
+      border-bottom: 2px solid #f0f0f0;
+    }
+  }
+  

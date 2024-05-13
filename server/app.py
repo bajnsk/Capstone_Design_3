@@ -8,14 +8,14 @@ import easyocr
 from translater import Model
 from image_proc import ImageProcessor
 from flask import send_from_directory
-
+import pdfplumber
 
 
 app = Flask(__name__)
 # CORS 설정
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 # 확장자 정의
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "pdf"}
 
 # 이미지 업로드 경로 설정
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,6 +31,13 @@ image_processor = ImageProcessor()
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# PDF에서 텍스트를 추출하는 함수
+def extract_text_from_pdf(pdf_path):
+    text = ""
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text += page.extract_text() or ""
+    return text
 
 # 이미지에서 텍스트를 추출
 def ocr_core(filename):
@@ -72,6 +79,28 @@ def file_upload():
     else:
         return jsonify({"error": "Invalid file type"}), 400
 
+@app.route("/pdf_translate", methods=["POST"])
+def pdf_translate():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    if file and file.filename.lower().endswith('.pdf'):
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        # PDF에서 텍스트 추출
+        extracted_text = extract_text_from_pdf(filepath)
+
+        # 추출된 텍스트 번역
+        sentences = image_processor.sentence_split(extracted_text)  # 이미 있는 함수 활용
+        translations = [model.gen(sentence) for sentence in sentences]  # 이미 있는 번역 모델 사용
+
+        return jsonify({"original_text": extracted_text, "translated_text": translations})
+    else:
+        return jsonify({"error": "Invalid file type"}), 400
 
 @app.route("/image_translate", methods=['POST'])
 def image_translate():
