@@ -32,12 +32,13 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # PDF에서 텍스트를 추출하는 함수
-def extract_text_from_pdf(pdf_path):
-    text = ""
+def extract_texts_from_pdf(pdf_path):
+    page_texts = []
     with pdfplumber.open(pdf_path) as pdf:
         for page in pdf.pages:
-            text += page.extract_text() or ""
-    return text
+            text = page.extract_text() or ""
+            page_texts.append(text)
+    return page_texts
 
 # 이미지에서 텍스트를 추출
 def ocr_core(filename):
@@ -91,17 +92,20 @@ def pdf_translate():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
 
-        # PDF에서 텍스트 추출
-        extracted_text = extract_text_from_pdf(filepath)
+        # PDF에서 페이지별 텍스트 추출
+        page_texts = extract_texts_from_pdf(filepath)
 
-        # 추출된 텍스트 번역
-        sentences = image_processor.sentence_split(extracted_text)  # 이미 있는 함수 활용
-        translations = [model.gen(sentence) for sentence in sentences]  # 이미 있는 번역 모델 사용
+        # 페이지별 텍스트 번역
+        page_translations = []
+        for text in page_texts:
+            sentences = image_processor.sentence_split(text)
+            translations = [model.gen(sentence) for sentence in sentences]
+            page_translations.append(" ".join(translations))
 
-        return jsonify({"original_text": extracted_text, "translated_text": translations})
+        return jsonify({"original_texts": page_texts, "translated_texts": page_translations})
     else:
         return jsonify({"error": "Invalid file type"}), 400
-
+        
 @app.route("/image_translate", methods=['POST'])
 def image_translate():
     if 'file' not in request.files:

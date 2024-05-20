@@ -42,8 +42,8 @@ const TranslatorSite = () => {
         navigate("/pdf", {
             state: {
                 fileURL: URL.createObjectURL(file),
-                originalText: pdfData.original_text,
-                translatedText: pdfData.translated_text,
+                originalTexts: pdfData.original_texts,
+                translatedTexts: pdfData.translated_texts,
             },
         });
     } else if (file.type.startsWith("image/")) {

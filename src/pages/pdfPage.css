@@ -24,12 +24,12 @@
     border-right: 2px solid #f0f0f0;
   }
   
-  .pdf-display img {
+  .pdf-display {
     width: 100%;
-    height: auto;
+    height: 80vh;
     border-radius: 10px; /* 이미지 모서리 둥글게 */
   }
-  
+ 
   .text-section {
     width: 50%;
     display: flex;
