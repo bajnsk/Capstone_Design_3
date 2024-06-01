@@ -9,7 +9,8 @@ from translater import Model
 from image_proc import ImageProcessor
 from flask import send_from_directory
 import pdfplumber
-
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 app = Flask(__name__)
 # CORS 설정
@@ -24,12 +25,14 @@ UPLOAD_FOLDER = os.path.join(BASE_DIR, "Upload")
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # import translating model (NLLB-200)
-model = Model()
+model = Model(model_name="facebook/nllb-200-distilled-600M")
 image_processor = ImageProcessor()
+
 
 # 허용할 파일 형식 확인
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 # PDF에서 텍스트를 추출하는 함수
 def extract_texts_from_pdf(pdf_path):
@@ -39,6 +42,7 @@ def extract_texts_from_pdf(pdf_path):
             text = page.extract_text() or ""
             page_texts.append(text)
     return page_texts
+
 
 # 이미지에서 텍스트를 추출
 def ocr_core(filename):
@@ -64,7 +68,7 @@ def file_upload():
     file = request.files["file"]
     if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
-    
+
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
@@ -80,16 +84,19 @@ def file_upload():
     else:
         return jsonify({"error": "Invalid file type"}), 400
 
+
 @app.route("/pdf_translate", methods=["POST"])
 def pdf_translate():
-    if 'file' not in request.files:
+    if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
-    file = request.files['file']
-    if file.filename == '':
+
+    file = request.files["file"]
+    if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
-    if file and file.filename.lower().endswith('.pdf'):
+
+    if file and file.filename.lower().endswith(".pdf"):
         filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         file.save(filepath)
 
         # PDF에서 페이지별 텍스트 추출
@@ -102,20 +109,25 @@ def pdf_translate():
             translations = [model.gen(sentence) for sentence in sentences]
             page_translations.append(" ".join(translations))
 
-        return jsonify({"original_texts": page_texts, "translated_texts": page_translations})
+        return jsonify(
+            {"original_texts": page_texts, "translated_texts": page_translations}
+        )
     else:
         return jsonify({"error": "Invalid file type"}), 400
-        
-@app.route("/image_translate", methods=['POST'])
+
+
+@app.route("/image_translate", methods=["POST"])
 def image_translate():
-    if 'file' not in request.files:
+    if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
-    file = request.files['file']
-    if file.filename == '':
+    file = request.files["file"]
+
+    if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
+
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         file.save(filepath)
 
         ocr_text = image_processor.run_ocr(filepath)
@@ -123,7 +135,9 @@ def image_translate():
         sentences = image_processor.sentence_split(combined_text)
         translations = [model.gen(sentence) for sentence in sentences]
 
-        return jsonify({"original_text": combined_text, "translated_text": translations})
+        return jsonify(
+            {"original_text": combined_text, "translated_text": translations}
+        )
     else:
         return jsonify({"error": "Invalid file type"}), 400
 
