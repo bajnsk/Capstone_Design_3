@@ -8,6 +8,7 @@ import easyocr
 from translater import Model
 from image_proc import ImageProcessor
 from flask import send_from_directory
+from PIL import Image, ImageFont, ImageDraw
 import pdfplumber
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -15,6 +16,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 app = Flask(__name__)
 # CORS 설정
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+
 # 확장자 정의
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "pdf"}
 
@@ -22,7 +24,9 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "pdf"}
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "Upload")
+SAVE_FOLDER = os.path.join(BASE_DIR, "Save")
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["SAVE_FOLDER"] = SAVE_FOLDER
 
 # import translating model (NLLB-200)
 model = Model(model_name="facebook/nllb-200-distilled-600M")
@@ -58,6 +62,10 @@ def ocr_core(filename):
         for result in results
     ]
     return ocr_results
+
+
+def asd():
+    pass
 
 
 @app.route("/upload", methods=["POST"])
@@ -142,5 +150,22 @@ def image_translate():
         return jsonify({"error": "Invalid file type"}), 400
 
 
+# @app.route("/아직 못정함 뭘로하지")
+def get_tran_image():
+    # 나중에 API 형식에 맞춰서 리펙토링 해주십쇼
+    image_path = '../Upload/test2.png'
+    img = Image.open(image_path)
+    out_img = ImageDraw.Draw(img)
+    ocr_text = image_processor.run_ocr(image_path)
+
+    for arrays, text, prob in ocr_text:
+        translated_text = model.gen(text)
+        image_processor.paste_text(out_img, arrays, translated_text)
+
+    img.show()
+    save_file_name = 'test2.png'
+    img.save(os.path.join(app.config["SAVE_FOLDER"], save_file_name))
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
