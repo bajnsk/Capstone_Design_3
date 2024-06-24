@@ -1,7 +1,8 @@
 import React from "react";
-import { FaUpload, FaClipboard } from "react-icons/fa";
+import { FaUpload} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
+import ClipboardHandler from "./ClipboardHandler";
 
 const TranslatorSite = () => {
   const navigate = useNavigate();
@@ -110,13 +111,8 @@ const TranslatorSite = () => {
           파일 업로드
         </button>
       </div>
-      <div className="actions">
-        <button>
-          <FaClipboard size={20} />
-          클립보드에서 붙여넣기
-        </button>
+      <ClipboardHandler handleFileUpload={handleFileUpload}/>
       </div>
-    </div>
   );
 };
 
