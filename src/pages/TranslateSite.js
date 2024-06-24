@@ -47,10 +47,15 @@ const TranslatorSite = () => {
             },
         });
     } else if (file.type.startsWith("image/")) {
-        let uploadResponse = await fetch("http://localhost:5000/upload", {
-            method: "POST",
-            body: formData,
-        });
+      const base64Image = await getBase64(file);
+
+      let uploadResponse = await fetch("http://localhost:5000/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ image: base64Image }),
+      });
 
         if (!uploadResponse.ok) {
             throw new Error("Upload failed");
@@ -62,8 +67,11 @@ const TranslatorSite = () => {
         }
 
         let translateResponse = await fetch("http://localhost:5000/image_translate", {
-            method: "POST",
-            body: formData,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ image: base64Image }),
         });
 
         if (!translateResponse.ok) {
@@ -74,6 +82,11 @@ const TranslatorSite = () => {
         if (translateData.error) {
             throw new Error(translateData.error);
         }
+
+        // 이미지 다운로드
+        // const imageUrl = `http://localhost:5000/static/${translateData.translated_image}`;
+        // const filename = translateData.translated_image;
+        // downloadImage(imageUrl, filename);
 
         navigate("/translate", {
           state: {
@@ -91,6 +104,30 @@ const TranslatorSite = () => {
       alert(error.message);
     }
   };
+
+  const getBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(reader.result);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // const downloadImage = async (imageUrl, filename) => {
+  //   const response = await fetch(imageUrl);
+  //   const blob = await response.blob();
+  //   const url = window.URL.createObjectURL(blob);
+  //   const a = document.createElement('a');
+  //   a.style.display = 'none';
+  //   a.href = url;
+  //   a.download = filename;
+  //   document.body.appendChild(a);
+  //   a.click();
+  //   window.URL.revokeObjectURL(url);
+  // };
 
   return (
     <div className="translator-container">

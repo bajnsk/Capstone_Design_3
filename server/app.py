@@ -1,3 +1,4 @@
+import base64
 from flask import Flask, request, jsonify, send_from_directory, after_this_request
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
@@ -6,6 +7,8 @@ import easyocr
 from translater import Model
 from image_proc import ImageProcessor
 from PIL import Image, ImageDraw
+import io
+import numpy as np
 import pdfplumber
 import ssl
 
@@ -36,9 +39,9 @@ def extract_texts_from_pdf(pdf_path):
             page_texts.append(text)
     return page_texts
 
-def ocr_core(filename):
+def ocr_core(image):
     reader = easyocr.Reader(["ko", "en"])
-    results = reader.readtext(filename)
+    results = reader.readtext(image)
     ocr_results = [
         {
             "text": result[1],
@@ -51,25 +54,21 @@ def ocr_core(filename):
 
 @app.route("/upload", methods=["POST"])
 def file_upload():
-    if "file" not in request.files:
-        return jsonify({"error": "No file part"}), 400
+    data = request.get_json()
+    if not data or 'image' not in data:
+        return jsonify({"error": "No image data"}), 400
 
-    file = request.files["file"]
-    if file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
+    image_data = data['image'].split(",")[1]  # Base64 데이터 부분만 추출
+    image = Image.open(io.BytesIO(base64.b64decode(image_data)))
 
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        file.save(filepath)
+    # PIL 이미지를 numpy array로 변환
+    image_np = np.array(image)
 
-        ocr_result = ocr_core(filepath)
+    ocr_result = ocr_core(image_np)
 
-        return jsonify(
-            {"message": "File successfully uploaded", "ocr_result": ocr_result}
-        )
-    else:
-        return jsonify({"error": "Invalid file type"}), 400
+    return jsonify(
+        {"message": "File successfully uploaded", "ocr_result": ocr_result}
+    )
 
 @app.route("/pdf_translate", methods=["POST"])
 def pdf_translate():
@@ -101,41 +100,35 @@ def pdf_translate():
 
 @app.route("/image_translate", methods=["POST"])
 def image_translate():
-    if "file" not in request.files:
-        return jsonify({"error": "No file part"}), 400
-    file = request.files["file"]
+    data = request.get_json()
+    if not data or 'image' not in data:
+        return jsonify({"error": "No image data"}), 400
 
-    if file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
+    image_data = data['image'].split(",")[1]  # Base64 데이터 부분만 추출
+    image = Image.open(io.BytesIO(base64.b64decode(image_data)))
 
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        file.save(filepath)
+    # PIL 이미지를 numpy array로 변환
+    image_np = np.array(image)
 
-        ocr_text = image_processor.run_ocr(filepath)
-        combined_text = image_processor.combine_text(ocr_text)
-        sentences = image_processor.sentence_split(combined_text)
-        translations = [model.gen(sentence) for sentence in sentences]
+    ocr_text = image_processor.run_ocr(image_np)
+    combined_text = image_processor.combine_text(ocr_text)
+    sentences = image_processor.sentence_split(combined_text)
+    translations = [model.gen(sentence) for sentence in sentences]
 
-        img = Image.open(filepath)
-        out_img = ImageDraw.Draw(img)
-        for arrays, text, prob in ocr_text:
-            translated_text = model.gen(text)
-            image_processor.paste_text(out_img, arrays, translated_text)
+    out_img = ImageDraw.Draw(image)
+    for arrays, text, prob in ocr_text:
+        translated_text = model.gen(text)
+        image_processor.paste_text(out_img, arrays, translated_text)
 
-        save_file_name = f"translated_{filename}"
-        save_filepath = os.path.join(app.config["SAVE_FOLDER"], save_file_name)
-        print(f"Saving translated image to: {save_filepath}")
-        img.save(save_filepath)
+    save_file_name = f"translated_image.png"
+    save_filepath = os.path.join(app.config["SAVE_FOLDER"], save_file_name)
+    image.save(save_filepath)
 
-        return jsonify({
-            "original_text": combined_text,
-            "translated_text": translations,
-            "translated_image": save_file_name
-        })
-    else:
-        return jsonify({"error": "Invalid file type"}), 400
+    return jsonify({
+        "original_text": combined_text,
+        "translated_text": translations,
+        "translated_image": save_file_name
+    })
 
 @app.route('/static/<path:filename>')
 def serve_static(filename):
