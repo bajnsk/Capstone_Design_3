@@ -23,7 +23,6 @@ const TranslatorSite = () => {
     formData.append("file", file);
 
     try {
-      // 파일 타입에 따른 처리
       if (file.type === "application/pdf") {
         let pdfResponse = await fetch("http://localhost:5000/pdf_translate", {
             method: "POST",
@@ -76,18 +75,19 @@ const TranslatorSite = () => {
         }
 
         navigate("/translate", {
-            state: {
-                image: URL.createObjectURL(file),
-                ocrText: uploadData.ocr_result.map((result) => result.text).join("\n"),
-                translatedText: translateData.translated_text.join(" "),
-            },
+          state: {
+              image: URL.createObjectURL(file),
+              translatedImage: translateData.translated_image,  // 수정된 부분: 서버에서 반환된 이미지의 경로를 사용
+              ocrText: uploadData.ocr_result.map((result) => result.text).join("\n"),
+              translatedText: translateData.translated_text.join(" "),
+          },
         });
       } else {
         alert("Unsupported file type. Please upload a PDF or an image file.");
       }
     } catch (error) {
       console.error("Error during file upload or translation:", error);
-      alert(error.message);  // 사용자에게 오류 메시지를 표시
+      alert(error.message);
     }
   };
 

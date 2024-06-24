@@ -4,15 +4,15 @@ import "./translatePage.css";
 
 const TranslatePage = () => {
   const location = useLocation();
-  const { image, ocrText, translatedText } = location.state; // 이전 페이지에서 전달된 state 사용
+  const { translatedImage, ocrText, translatedText } = location.state;
 
   return (
     <div className="translate-page-container">
       <div className="content-container">
         <div className="image-section">
-          <h2>원본 이미지</h2>
+          <h2>번역된 이미지</h2>
           <div className="image-display">
-            <img src={image} alt="Uploaded" />
+            <img src={`http://localhost:5000/static/${translatedImage}`} alt="Translated" />
           </div>
         </div>
         <div className="text-section">
